@@ -118,6 +118,8 @@ BOOL CConverterDlg::OnInitDialog()
 	//
 
 	m_CbxType.SetCurSel(0);
+	short index = m_CbxType.GetCurSel();
+	m_CbxType.GetLBText(index, m_outputType);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -173,11 +175,41 @@ HCURSOR CConverterDlg::OnQueryDragIcon()
 
 void CConverterDlg::OnBnClickedbtnconvert()
 {
-	int results;
+	CT2A path(m_fullpath);
+	CT2A folder(m_destinationFolder);
+	CT2A extension(m_outputType);
+
+	char path_buffer[_MAX_PATH];
+	char drive[_MAX_DRIVE];
+	char directory[_MAX_DIR];
+	char fname[_MAX_FNAME];
+	char ext[_MAX_EXT];
+	errno_t err;
+
+	err = _splitpath_s(path, NULL, 0, NULL, 0, fname, _MAX_FNAME, NULL, 0);
+
+	if (err != 0)
+		AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+
+	err = _splitpath_s(folder, drive, _MAX_DRIVE, directory, _MAX_DIR, NULL, 0, NULL, 0);
+
+	if (err != 0)
+		AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+
+	err = _makepath_s(path_buffer, _MAX_PATH, drive, directory, fname, extension);
+
+	if (err != 0)
+		AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+
+	CString src(path);
+	CString dst(path_buffer);
+
+	if (CopyFile(src, dst, FALSE) == 0)
+		AfxMessageBox(_T("Copy Operation Failed"), MB_OK | MB_ICONSTOP);
 
 	if (m_openAfter == true)
 	{
-		results = (int) ShellExecute(0, 0, m_fullpath, 0, 0, SW_SHOW);
+		int results = (int) ShellExecute(0, 0, dst, 0, 0, SW_SHOW);
 
 		if (results > 32)
 		{
@@ -245,6 +277,7 @@ void CConverterDlg::OnBnClickedbtndestination()
 	if (dlg.DoModal() == IDOK)
 	{
 		m_destinationFolder = dlg.GetPathName();
+		m_destinationFolder += _T("\\");
 		SetDlgItemText(txtDestination, m_destinationFolder);
 	}
 
