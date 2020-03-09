@@ -12,7 +12,6 @@
 #define new DEBUG_NEW
 #endif
 
-
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx
@@ -47,8 +46,6 @@ END_MESSAGE_MAP()
 
 
 // CConverterDlg dialog
-
-
 
 CConverterDlg::CConverterDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CONVERTER_DIALOG, pParent)
@@ -222,21 +219,19 @@ void CConverterDlg::OnBnClickedbtnconvert()
 	{
 		int results = (int) ShellExecute(0, 0, dst, 0, 0, SW_SHOW);
 
-		if (results > 32)
-		{
-
-			AfxMessageBox(_T("Conversion is Complete!"), MB_OK | MB_ICONEXCLAMATION);
-			return;
-		}
-		else if (results == SE_ERR_NOASSOC)
+		if (results == SE_ERR_NOASSOC)
 		{
 			AfxMessageBox(_T("Sorry, No Program is associated with this type."), MB_OK | MB_ICONSTOP);
+			return;
 		}
-		else
+		else if(results <= 32)
 		{
 			AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+			return;
 		}
 	}
+
+	AfxMessageBox(_T("Conversion is Complete!"), MB_OK | MB_ICONEXCLAMATION);
 
 }
 
