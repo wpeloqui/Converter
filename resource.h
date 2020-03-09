@@ -16,6 +16,8 @@
 #define cbxType                         1007
 #define IDC_CHECK1                      1008
 #define ckbOpen                         1009
+#define ckbOpen2                        1010
+#define ckbShowInFolder                 1010
 
 // Next default values for new objects
 // 

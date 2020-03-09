@@ -35,12 +35,18 @@ public:
 	afx_msg void OnBnClickedbtnconvert();
 	afx_msg void OnBnClickedbtnchooser();
 	afx_msg void OnCbnSelchangecbxtype();
-	CComboBox m_CbxType;
+	afx_msg void OnBnClickedbtndestination();
+	afx_msg void OnBnClickedckbopen();
+	afx_msg void OnBnClickedckbshowinfolder();
+
+	CButton m_convert;
+	CButton m_open;
+	CButton m_show;
+	CComboBox m_cbxType;
+	
 	CString m_fullpath;
 	CString m_outputType;
 	CString m_destinationFolder;
 	bool m_openAfter;
-	afx_msg void OnBnClickedbtndestination();
-	afx_msg void OnBnClickedckbopen();
-	CButton m_open;
+	BOOL m_showInFolder;
 };

@@ -49,6 +49,7 @@ END_MESSAGE_MAP()
 
 CConverterDlg::CConverterDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CONVERTER_DIALOG, pParent)
+	, m_showInFolder(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -56,8 +57,11 @@ CConverterDlg::CConverterDlg(CWnd* pParent /*=nullptr*/)
 void CConverterDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, cbxType, m_CbxType);
+	DDX_Control(pDX, cbxType, m_cbxType);
 	DDX_Control(pDX, ckbOpen, m_open);
+	DDX_Control(pDX, btnConvert, m_convert);
+	DDX_Check(pDX, ckbShowInFolder, m_showInFolder);
+	DDX_Control(pDX, ckbShowInFolder, m_show);
 }
 
 BEGIN_MESSAGE_MAP(CConverterDlg, CDialogEx)
@@ -69,6 +73,7 @@ BEGIN_MESSAGE_MAP(CConverterDlg, CDialogEx)
 	ON_CBN_SELCHANGE(cbxType, &CConverterDlg::OnCbnSelchangecbxtype)
 	ON_BN_CLICKED(btnDestination, &CConverterDlg::OnBnClickedbtndestination)
 	ON_BN_CLICKED(ckbOpen, &CConverterDlg::OnBnClickedckbopen)
+	ON_BN_CLICKED(ckbShowInFolder, &CConverterDlg::OnBnClickedckbshowinfolder)
 END_MESSAGE_MAP()
 
 
@@ -109,14 +114,15 @@ BOOL CConverterDlg::OnInitDialog()
 	m_outputType = _T("");
 	m_destinationFolder = _T("");
 	m_openAfter = (m_open.GetCheck() == BST_CHECKED ? true : false);
+	m_showInFolder = (m_show.GetCheck() == BST_CHECKED ? true : false);
 
 	// Load the type combo box
 	//
 	//
 
-	m_CbxType.SetCurSel(0);
-	short index = m_CbxType.GetCurSel();
-	m_CbxType.GetLBText(index, m_outputType);
+	m_cbxType.SetCurSel(0);
+	short index = m_cbxType.GetCurSel();
+	m_cbxType.GetLBText(index, m_outputType);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -170,6 +176,10 @@ HCURSOR CConverterDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+// handle the conversion button
+//
+//
+
 void CConverterDlg::OnBnClickedbtnconvert()
 {
 	CT2A path(m_fullpath);
@@ -181,6 +191,12 @@ void CConverterDlg::OnBnClickedbtnconvert()
 	char directory[_MAX_DIR];
 	char fname[_MAX_FNAME];
 	errno_t err;
+
+	if (strlen(path) == 0 || strlen(folder) == 0)
+	{ 
+		AfxMessageBox(_T("Please Select File to Convert."), MB_OK | MB_ICONSTOP);
+		return;
+	}
 
 	err = _splitpath_s(path, NULL, 0, NULL, 0, fname, _MAX_FNAME, NULL, 0);
 
@@ -215,9 +231,13 @@ void CConverterDlg::OnBnClickedbtnconvert()
 		return;
 	}
 
+	// handle opening file in default application
+	//
+	//
+
 	if (m_openAfter == true)
 	{
-		int results = (int) ShellExecute(0, 0, dst, 0, 0, SW_SHOW);
+		INT_PTR results = (INT_PTR) ShellExecute(0, 0, dst, 0, 0, SW_SHOW);
 
 		if (results == SE_ERR_NOASSOC)
 		{
@@ -231,10 +251,37 @@ void CConverterDlg::OnBnClickedbtnconvert()
 		}
 	}
 
-	AfxMessageBox(_T("Conversion is Complete!"), MB_OK | MB_ICONEXCLAMATION);
+	// handle showing file in folder
+	//
+	//
 
+	if (m_showInFolder == TRUE)
+	{
+		INT_PTR results = (INT_PTR) ShellExecute(NULL, NULL, m_destinationFolder, NULL, NULL, SW_SHOWNORMAL);
+		
+		if (results == SE_ERR_NOASSOC)
+		{
+			AfxMessageBox(_T("Sorry, No Program is associated with this type."), MB_OK | MB_ICONSTOP);
+			return;
+		}
+		else if (results == SE_ERR_FNF)
+		{
+			AfxMessageBox(_T("Sorry, File Not Found Error."), MB_OK | MB_ICONSTOP);
+			return;
+		}
+		else if (results <= 32)
+		{
+			AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+			return;
+		}
+	}
+
+	AfxMessageBox(_T("Conversion is Complete!"), MB_OK | MB_ICONEXCLAMATION);
 }
 
+// handle selecting the file to convert
+//
+//
 
 void CConverterDlg::OnBnClickedbtnchooser()
 {
@@ -300,16 +347,28 @@ void CConverterDlg::OnBnClickedbtnchooser()
 
 	m_destinationFolder = CA2T(path_buffer);
 	SetDlgItemText(txtDestination, m_destinationFolder);
+
+	// enable the convert button
+	//
+	//
+
+	m_convert.EnableWindow(TRUE);
 }
 
+// handle the conversion format combo box
+//
+//
 
 void CConverterDlg::OnCbnSelchangecbxtype()
 {
-	short index = m_CbxType.GetCurSel();
-	m_CbxType.GetLBText(index, m_outputType);
+	short index = m_cbxType.GetCurSel();
+	m_cbxType.GetLBText(index, m_outputType);
 
 }
 
+// handle selecting the destination folder
+//
+//
 
 void CConverterDlg::OnBnClickedbtndestination()
 {
@@ -328,8 +387,20 @@ void CConverterDlg::OnBnClickedbtndestination()
 
 }
 
+// handle open in default application
+//
+//
 
 void CConverterDlg::OnBnClickedckbopen()
 {
 	m_openAfter = (m_open.GetCheck() == BST_CHECKED ? true : false);
+}
+
+// handle show in folder click box
+//
+//
+
+void CConverterDlg::OnBnClickedckbshowinfolder()
+{
+	m_showInFolder = (m_show.GetCheck() == BST_CHECKED ? true : false);
 }
