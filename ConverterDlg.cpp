@@ -183,29 +183,40 @@ void CConverterDlg::OnBnClickedbtnconvert()
 	char drive[_MAX_DRIVE];
 	char directory[_MAX_DIR];
 	char fname[_MAX_FNAME];
-	char ext[_MAX_EXT];
 	errno_t err;
 
 	err = _splitpath_s(path, NULL, 0, NULL, 0, fname, _MAX_FNAME, NULL, 0);
 
 	if (err != 0)
+	{
 		AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+		return;
+	}
 
 	err = _splitpath_s(folder, drive, _MAX_DRIVE, directory, _MAX_DIR, NULL, 0, NULL, 0);
 
 	if (err != 0)
+	{
 		AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+		return;
+	}
 
 	err = _makepath_s(path_buffer, _MAX_PATH, drive, directory, fname, extension);
 
 	if (err != 0)
+	{
 		AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+		return;
+	}
 
 	CString src(path);
 	CString dst(path_buffer);
 
 	if (CopyFile(src, dst, FALSE) == 0)
+	{
 		AfxMessageBox(_T("Copy Operation Failed"), MB_OK | MB_ICONSTOP);
+		return;
+	}
 
 	if (m_openAfter == true)
 	{
@@ -213,6 +224,8 @@ void CConverterDlg::OnBnClickedbtnconvert()
 
 		if (results > 32)
 		{
+
+			AfxMessageBox(_T("Conversion is Complete!"), MB_OK | MB_ICONEXCLAMATION);
 			return;
 		}
 		else if (results == SE_ERR_NOASSOC)
@@ -224,6 +237,7 @@ void CConverterDlg::OnBnClickedbtnconvert()
 			AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
 		}
 	}
+
 }
 
 
@@ -246,8 +260,14 @@ void CConverterDlg::OnBnClickedbtnchooser()
 	m_fullpath = dlg.GetPathName();
 
 	CT2A path(m_fullpath);
+
 	char fname[_MAX_FNAME];
 	char ext[_MAX_EXT];
+	char path_buffer[_MAX_PATH];
+	char drive[_MAX_DRIVE];
+	char directory[_MAX_DIR];
+
+	errno_t err;
 
 	_splitpath_s(path, NULL, 0, NULL, 0, fname, _MAX_FNAME, ext, _MAX_EXT);
 
@@ -255,6 +275,30 @@ void CConverterDlg::OnBnClickedbtnchooser()
 
 	CString filename(fname);
 	SetDlgItemText(txtFile, filename);
+
+	// Fill in the destination default
+	//
+	//
+
+	CT2A folder(m_destinationFolder);
+	CT2A extension(m_outputType);
+
+	err = _splitpath_s(path, drive, _MAX_DRIVE, directory, _MAX_DIR, NULL, 0, NULL, 0);
+
+	if (err != 0)
+	{
+		AfxMessageBox(_T("Unknown Error Splitting Path."), MB_OK | MB_ICONSTOP);
+	}
+
+	err = _makepath_s(path_buffer, _MAX_PATH, drive, directory, NULL, NULL);
+
+	if (err != 0)
+	{
+		AfxMessageBox(_T("Unknown Error Making Default Destination."), MB_OK | MB_ICONSTOP);
+	}
+
+	m_destinationFolder = CA2T(path_buffer);
+	SetDlgItemText(txtDestination, m_destinationFolder);
 }
 
 
