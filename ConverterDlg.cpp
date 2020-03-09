@@ -59,6 +59,8 @@ CConverterDlg::CConverterDlg(CWnd* pParent /*=nullptr*/)
 void CConverterDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, cbxType, m_CbxType);
+	DDX_Control(pDX, ckbOpen, m_open);
 }
 
 BEGIN_MESSAGE_MAP(CConverterDlg, CDialogEx)
@@ -67,6 +69,9 @@ BEGIN_MESSAGE_MAP(CConverterDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(btnConvert, &CConverterDlg::OnBnClickedbtnconvert)
 	ON_BN_CLICKED(btnChooser, &CConverterDlg::OnBnClickedbtnchooser)
+	ON_CBN_SELCHANGE(cbxType, &CConverterDlg::OnCbnSelchangecbxtype)
+	ON_BN_CLICKED(btnDestination, &CConverterDlg::OnBnClickedbtndestination)
+	ON_BN_CLICKED(ckbOpen, &CConverterDlg::OnBnClickedckbopen)
 END_MESSAGE_MAP()
 
 
@@ -102,6 +107,17 @@ BOOL CConverterDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+
+	m_fullpath = _T("");
+	m_outputType = _T("");
+	m_destinationFolder = _T("");
+	m_openAfter = (m_open.GetCheck() == BST_CHECKED ? true : false);
+
+	// Load the type combo box
+	//
+	//
+
+	m_CbxType.SetCurSel(0);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -155,18 +171,34 @@ HCURSOR CConverterDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-CString fullpath;
-
 void CConverterDlg::OnBnClickedbtnconvert()
 {
-	ShellExecute(0, 0, fullpath, 0, 0, SW_SHOW);
+	int results;
+
+	if (m_openAfter == true)
+	{
+		results = (int) ShellExecute(0, 0, m_fullpath, 0, 0, SW_SHOW);
+
+		if (results > 32)
+		{
+			return;
+		}
+		else if (results == SE_ERR_NOASSOC)
+		{
+			AfxMessageBox(_T("Sorry, No Program is associated with this type."), MB_OK | MB_ICONSTOP);
+		}
+		else
+		{
+			AfxMessageBox(_T("Unknown Error Opening Converted File."), MB_OK | MB_ICONSTOP);
+		}
+	}
 }
 
 
 void CConverterDlg::OnBnClickedbtnchooser()
 {
 
-	CString extensions("PDF File (*.pdf)|*.pdf|Document File (*.doc)|*.doc|All Files(*.*)|*.*||");
+	CString extensions("InDesign File (*.indd)|*.indd||");
 	CString defExt("");
 	CString defName("");
 
@@ -179,9 +211,9 @@ void CConverterDlg::OnBnClickedbtnchooser()
 		return;
 	}
 
-	fullpath = dlg.GetPathName();
+	m_fullpath = dlg.GetPathName();
 
-	CT2A path(fullpath);
+	CT2A path(m_fullpath);
 	char fname[_MAX_FNAME];
 	char ext[_MAX_EXT];
 
@@ -191,4 +223,35 @@ void CConverterDlg::OnBnClickedbtnchooser()
 
 	CString filename(fname);
 	SetDlgItemText(txtFile, filename);
+}
+
+
+void CConverterDlg::OnCbnSelchangecbxtype()
+{
+	short index = m_CbxType.GetCurSel();
+	m_CbxType.GetLBText(index, m_outputType);
+
+}
+
+
+void CConverterDlg::OnBnClickedbtndestination()
+{
+
+	CFolderPickerDialog dlg;
+
+	dlg.m_ofn.lpstrTitle = _T("Put Title Here");
+	dlg.m_ofn.lpstrInitialDir = _T("C:\\");
+
+	if (dlg.DoModal() == IDOK)
+	{
+		m_destinationFolder = dlg.GetPathName();
+		SetDlgItemText(txtDestination, m_destinationFolder);
+	}
+
+}
+
+
+void CConverterDlg::OnBnClickedckbopen()
+{
+	m_openAfter = (m_open.GetCheck() == BST_CHECKED ? true : false);
 }

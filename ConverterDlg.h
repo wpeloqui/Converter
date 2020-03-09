@@ -34,4 +34,13 @@ protected:
 public:
 	afx_msg void OnBnClickedbtnconvert();
 	afx_msg void OnBnClickedbtnchooser();
+	afx_msg void OnCbnSelchangecbxtype();
+	CComboBox m_CbxType;
+	CString m_fullpath;
+	CString m_outputType;
+	CString m_destinationFolder;
+	bool m_openAfter;
+	afx_msg void OnBnClickedbtndestination();
+	afx_msg void OnBnClickedckbopen();
+	CButton m_open;
 };
