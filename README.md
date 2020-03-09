@@ -68,4 +68,4 @@ What format to export as? (IDML, PNG, JPG)
   
 What to do after the conversion? (Reveal in Finder, Open in default application)]
   
-  I added an Open Upon Comversion checkbox that can be selected to open the file in the default application.
+  I added an Open Upon Conversion checkbox that can be selected to open the file in the default application.
