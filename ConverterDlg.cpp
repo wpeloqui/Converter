@@ -269,7 +269,13 @@ void CConverterDlg::OnBnClickedbtnchooser()
 
 	errno_t err;
 
-	_splitpath_s(path, NULL, 0, NULL, 0, fname, _MAX_FNAME, ext, _MAX_EXT);
+	err = _splitpath_s(path, NULL, 0, NULL, 0, fname, _MAX_FNAME, ext, _MAX_EXT);
+
+	if (err != 0)
+	{
+		AfxMessageBox(_T("Unknown Error Splitting Path."), MB_OK | MB_ICONSTOP);
+		return;
+	}
 
 	strcat_s(fname, ext);
 
